@@ -164,6 +164,36 @@ body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var
 .type-out { background: var(--yellow-light); color: #7a6000; }
 .btn-export { background: var(--yellow-light); color: var(--green); border: 1px solid #e8d880; border-radius: var(--radius-sm); padding: 9px 18px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; margin-bottom: 14px; }
 .btn-done { background: var(--green); color: var(--yellow); border: none; border-radius: var(--radius-sm); padding: 12px 28px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; }
+.btn-leaderboard { background: var(--green); color: var(--yellow); border: none; border-radius: var(--radius-sm); padding: 11px 20px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 22px; display: inline-flex; align-items: center; gap: 8px; }
+
+#screen-leaderboard { background: var(--white); }
+.lb-header { background: var(--yellow); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
+.lb-title { font-family: 'Merriweather', serif; font-style: italic; font-size: 22px; color: var(--green); }
+.lb-body { flex: 1; overflow-y: auto; padding: 24px 32px 32px; }
+.lb-controls { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.lb-date-select { padding: 10px 14px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--green); font-weight: 600; background: var(--yellow-light); outline: none; }
+.lb-summary { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+.lb-stat { background: var(--green-light); border-radius: var(--radius-sm); padding: 14px 20px; min-width: 120px; }
+.lb-stat-num { font-size: 26px; font-weight: 700; color: var(--green); line-height: 1.1; }
+.lb-stat-label { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.lb-content { display: flex; gap: 32px; flex-wrap: wrap; align-items: flex-start; }
+.lb-list-col { flex: 1 1 340px; min-width: 300px; }
+.lb-pie-col { flex: 0 0 220px; display: flex; flex-direction: column; align-items: center; }
+.lb-pie-col svg { width: 200px; height: 200px; }
+.lb-legend { margin-top: 14px; width: 100%; }
+.lb-legend-item { font-size: 12px; color: var(--text); display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.lb-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.lb-row { margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+.lb-row:last-child { border-bottom: none; }
+.lb-row-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+.lb-rank { font-family: 'Merriweather', serif; font-style: italic; font-size: 15px; color: var(--text-muted); width: 26px; flex-shrink: 0; }
+.lb-session-info { flex: 1; min-width: 0; }
+.lb-session-name { font-size: 15px; font-weight: 600; color: var(--green); }
+.lb-session-loc { font-size: 12px; color: var(--text-muted); }
+.lb-count { font-size: 18px; font-weight: 700; color: var(--green); flex-shrink: 0; }
+.lb-bar-track { height: 8px; background: var(--yellow-light); border-radius: 4px; overflow: hidden; margin-bottom: 8px; }
+.lb-bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+.lb-names { font-size: 12.5px; color: var(--text-muted); line-height: 1.5; }
 
 #admin-trigger { position: fixed; bottom: 0; right: 0; width: 60px; height: 60px; cursor: pointer; z-index: 999; }
 ::-webkit-scrollbar { width: 5px; }
@@ -347,6 +377,8 @@ body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var
   <div class="admin-body">
     <div style="font-family:'Merriweather',serif;font-style:italic;font-size:24px;color:var(--green);margin-bottom:24px;">Kiosk settings</div>
 
+    <button class="btn-leaderboard" onclick="showScreen('screen-leaderboard')">📊 Session Leaderboard</button>
+
     <div class="admin-section-title">Today's sessions</div>
     <div class="tag-grid" id="admin-sessions-tags"></div>
     <div class="add-row">
@@ -372,6 +404,30 @@ body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var
   </div>
 </div>
 
+<!-- ══ SESSION LEADERBOARD ══ -->
+<div class="screen" id="screen-leaderboard">
+  <div class="lb-header">
+    <div class="lb-title">📊 Session Leaderboard</div>
+    <button class="btn-done" style="margin-top:0;" onclick="showScreen('screen-admin')">← Back</button>
+  </div>
+  <div class="lb-body">
+    <div class="lb-controls">
+      <select class="lb-date-select" id="leaderboard-date" onchange="renderLeaderboard()"></select>
+    </div>
+    <div class="lb-summary">
+      <div class="lb-stat"><div class="lb-stat-num" id="leaderboard-total">0</div><div class="lb-stat-label">Check-ins</div></div>
+      <div class="lb-stat"><div class="lb-stat-num" id="leaderboard-session-count">0</div><div class="lb-stat-label">Sessions run</div></div>
+    </div>
+    <div class="lb-content">
+      <div class="lb-list-col" id="leaderboard-list"></div>
+      <div class="lb-pie-col">
+        <svg id="leaderboard-pie" viewBox="0 0 200 200"></svg>
+        <div class="lb-legend" id="leaderboard-legend"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="admin-trigger" onclick="adminTap()"></div>
 
 <script>
@@ -386,27 +442,36 @@ let participants = [
   "Abraham Bashroum",
   "Adam Carroll",
   "Adam Mckeown",
+  "Adel Hamouti",
   "Adesa Goldbanks",
   "Adusslay Da Silva",
+  "Aggie ( AKA - SWEE)  Harris",
   "Ahzar Butt",
   "Aissata Jalloh",
   "Akin Sunay",
+  "Akua Tawiah",
   "Alex O'Rourke",
   "Alexandra Pouillox",
+  "Alexandra Rabello",
   "Alice Olokun",
   "Alice Woods",
   "Alicia Sanguinett",
   "Allan Burgoyne",
   "Alwayne Jones",
+  "Alyssa Costa",
   "Alyssa Lorde",
   "Ama Osei",
   "Amal Mohudin Mohamud",
+  "Amanda Readman",
   "Amanda Woolveridge",
   "Ameena Mccatty",
   "Amina Abdi",
+  "Amira. O Oumer",
+  "Amit Jethwa",
   "Amy Hibbert",
   "Amy Robinson",
   "Andrea Figaro",
+  "Andrew Gibson",
   "Andrew Harvey",
   "Andrew Lewis",
   "Andrew Ramdharry",
@@ -417,6 +482,9 @@ let participants = [
   "Angel Oppong",
   "Angela Lynshue",
   "Angelina Evangelides",
+  "Angella Lynshue",
+  "Angelo Fragliasso",
+  "Anisa Maxamud",
   "Anita Adeleye",
   "Anita Seeratun",
   "Ann Canavan",
@@ -429,20 +497,38 @@ let participants = [
   "Anne-Marie Hylton",
   "Anthony (Alex) Steen",
   "Anthony Barretto",
+  "Anthony Hickey",
   "Aqda Ahmed",
   "Ariane Brimah",
+  "Art and Conversations",
+  "Art Therapy (1:1)",
+  "Art Therapy (Group)",
   "Artemis sadaghiani- Tabrizi",
+  "Asha Mukungu",
   "Ashley Searles",
+  "Atilla Dzahn Bulut",
   "Atlee Evans",
+  "Aura Mendes",
+  "Aysha Lavene Lewis",
+  "Aysha Lewis",
+  "Ayten Guven",
+  "Baking Group",
   "Bamidele Orunkoya",
   "Barbara Podgorska",
   "Beth Chapman",
+  "Bethan Palmer",
   "Beverley Bodkin",
   "Beverly Bodkin",
   "Bibsi Haywill (Saba)",
+  "Billge Erdogan",
+  "Billy Tendo",
+  "Blige  Erdogan",
+  "Bobbesha Steele",
+  "Brandon Henry",
   "Brenda Lynch",
   "Brenda Roach",
   "Brett Hoshue",
+  "Bridget Holden",
   "Bulelwa (Monde) Phahlane",
   "Cait Nifhinn",
   "Calvin Bartley",
@@ -457,11 +543,16 @@ let participants = [
   "Carolina Benitez",
   "Caroline Haurie",
   "Cate Ablett",
+  "Celine Blanc",
   "Celine Camille",
+  "Chair Exercise",
   "Chander Pande",
   "Chantel Graham",
   "Charlotte Crichton-Ernest",
   "Chaz Johnston",
+  "Cheryl Davids",
+  "Chestnuts Community Centre",
+  "Chestnuts Park",
   "Chinyere Metu",
   "Chris Bell",
   "Christian Sewell",
@@ -469,19 +560,32 @@ let participants = [
   "Christine Ibrahim",
   "Christine Moore",
   "Christopher (Winston) Nelson",
+  "Christopher Jones",
   "Christopher Webber",
   "Claiestine Evadine Lee",
+  "Clare Vander",
   "Claudene Brown",
   "Claudia Perretti",
+  "Claudine Elesia",
+  "Claudine Johnson",
   "Clayton Hines",
   "Clerine Greaves",
   "Clifford Hodson",
+  "Clifton Leslie",
+  "Clive Grant",
   "Clotilda Bicar",
   "Colin Joseph",
+  "Colin McQueen",
   "Connie Costa",
+  "Corey Clarke",
+  "Corlene Baird",
+  "Creative Space",
+  "Cricket",
   "Cristina Garcia",
   "Cristina Negrescu",
   "Cristina Roe",
+  "Daksha Gosai",
+  "Daniel Harding",
   "Daniel Murrel",
   "Daniel Nidoy",
   "Daniel Shemelis",
@@ -489,8 +593,16 @@ let participants = [
   "Daniela Oge",
   "Daniela Sorgente",
   "Danny Pattison",
+  "Dante TBC",
+  "Darnell Miah",
+  "Darrell Payne",
+  "David  James",
+  "David  Urqhart",
+  "David Basri",
   "David Colpstein",
   "David Dias",
+  "David North",
+  "David Okorafor",
   "David Thornberry",
   "Davina Titre",
   "Dawn Laporte",
@@ -500,6 +612,8 @@ let participants = [
   "Deborah Mcshane",
   "Deborah Melville-Cassanova",
   "Deborah Santarelli",
+  "Debra Lockyer",
+  "Dejvi Hamataj",
   "Delbritha Carnis Johnson",
   "Deleisha Barrett",
   "Deniz Dincer",
@@ -516,6 +630,7 @@ let participants = [
   "Donald Dyer",
   "Donna Barton",
   "Donna Berg",
+  "Donna Jackson",
   "Dorett Panther",
   "Drew Ellington",
   "Dulla Demetriou",
@@ -528,14 +643,23 @@ let participants = [
   "Elaine Peters",
   "Elanor (Ellie) Bradford",
   "Elena Minescu",
+  "Eliahu Abraham",
+  "Elijah Augustus Samuel  Roper",
+  "Elijah Roper",
+  "Elinah Kobusingye",
+  "Elise Dumontet",
+  "Elizaberth Sowerby",
   "Elizabeth Dbouk",
   "Elizabeth Kazeem",
+  "Elizabeth Spencer",
   "Ella Macadam",
   "Ella Macadam B",
   "Ellen Holloway",
   "Ellie Telford",
   "Elvis Morina",
   "Emanuella Kyeame-Agye",
+  "Emily Burnham",
+  "Emily Hyman",
   "Emily Katy May Turner",
   "Emily Turner",
   "Emma (Formerly Kyri) Saphiris",
@@ -543,6 +667,8 @@ let participants = [
   "Emmanuella Kyeame-Agye",
   "Emmanuella Pisanti",
   "Enneta Kakanno",
+  "Enrica Vigenzone- Toniolo",
+  "Eoin Francis Forde",
   "Erdal Ozturk",
   "Ereysi Rocha Pereira",
   "Erica Harris",
@@ -553,7 +679,9 @@ let participants = [
   "Evelyne Lustig",
   "Everton Lambart Grey",
   "Ezgi Ozcan",
+  "Fabrice Bale",
   "Fahmida Husain",
+  "Faith Dallas",
   "Fatima Batmaz",
   "Fatima Batool",
   "Felicia O Ahuruonye",
@@ -561,14 +689,21 @@ let participants = [
   "Ferenc Erdelyi",
   "Finbar Forde",
   "Firat Dogal",
+  "Fitzpatrick",
   "Florence Farodoye",
   "Frances Ford",
   "Frances Williams",
   "Francesca Faeducci",
+  "Francesca Romano",
+  "Francesca Tarducci",
+  "Francia Elena Koseleff",
   "Francis Lipman",
+  "Franco Caligaro",
   "Frank Gosalves",
   "Frank Opoku",
+  "Gardening",
   "Garvin Gustave",
+  "Gary",
   "Gary Clarke",
   "Gary Pond",
   "Gary Scott",
@@ -577,32 +712,49 @@ let participants = [
   "George Lazou",
   "George Mcseveney",
   "Georgiana (dolly) Wynter",
+  "Georgina Bitmead",
   "Georgina Richards",
   "Georgios Christou",
   "Geraldine Kelly",
   "Gianna Selvaggio",
   "Gillian Boeteng",
+  "Gillian Hinkes",
   "Gina Sinclaire",
   "Gita Bilimoria",
+  "Gladys Yepes",
   "Gloria Hunt",
   "Gloria Peto",
   "Grace Smith",
+  "Grazia Vicinanza",
+  "Greg  Derham",
+  "Gregory Derham",
+  "Gulbahar  Das",
+  "Gull Rahman Dawlatzi",
   "Gulseren Kisa",
   "Halil Suzannah",
+  "Haluk  Salih",
+  "Hamad",
   "Hamdia Osman",
+  "Handan Ozbey",
   "Hanna Gebru",
   "Hanna Mountford",
   "Hannah Janet Ali",
+  "Harmeet Kaur",
+  "Haroun Ramadhan",
   "Harrieth Walcott",
+  "Hassib Elmughrabi",
+  "Hayaati NJUKI",
   "Heena Shah",
   "Helen Evans",
   "Helen Poplet",
+  "Helena Jones",
   "Helio Pina Da Cruz",
   "Henry Irons",
   "Hind Mansour",
   "Holli Dillon",
   "Hope Eiyagbon Vitaus Nonwima",
   "Hope Iyagbon Vitaus Nwontima",
+  "Hugo Casallas",
   "Hussein Alsatari",
   "Ianos Leusca (Yorn)",
   "Ilenia Cipollari",
@@ -618,6 +770,7 @@ let participants = [
   "Ivandra Manuel",
   "Ivo Kurida",
   "Ivy Maware",
+  "J Laver",
   "Jack McCutcheon",
   "Jacqueline Grace",
   "Jade Beach",
@@ -630,23 +783,33 @@ let participants = [
   "James Grieve",
   "James Kingsley",
   "James Spear",
+  "Jamie Lavery",
   "Jamie Yousry",
   "Jane Osei- Campbell",
+  "Jane Roberts",
   "Jane Tungana",
+  "Jane Woodruff",
   "Janeta Trowers",
   "Janice Davis",
   "Jaqueline (Jaqui) Pingue",
+  "Jasbir Kaur",
   "Jason De'Lorme",
   "Jason Kearney",
   "Jason King",
+  "Javed Moledina",
   "Jayanta Burman",
   "Jayne McDermott",
   "Jazz Breen",
   "Jeff Nuwagaba",
+  "Jennie CLAXTON",
+  "Jennifer Brown",
   "Jennifer Gayle-Morgan",
   "Jennifer Robinson",
+  "Jennifer Wood",
   "Jeremiah Menzies",
   "Jermaine Buntin",
+  "Jessica Clark",
+  "Jessy Dye",
   "Jo Howel",
   "Joachim Hamm",
   "Jodi Plit- Shapiro",
@@ -655,6 +818,7 @@ let participants = [
   "John Lerma",
   "John Masters",
   "John Mcgauran",
+  "John Sexton",
   "Jolene Murray",
   "Jon Armstrong",
   "Jonathan Grieve",
@@ -667,46 +831,70 @@ let participants = [
   "Joy Jacobs",
   "Jubel Malik",
   "Judith Symister",
+  "Julia Romero",
   "Julian Lake",
+  "Julie Andrew",
   "Julie Bridgen",
   "Jullian Irvine",
   "Justin Clarke",
   "Justyna Jurek",
+  "Ka man tsui  Ka",
+  "KA TSUI",
   "Kala Gunness",
+  "Karen  Hall",
+  "Karen Hawthorne",
   "Karen Joannou",
   "Kariss Diamond",
   "Karl Forbes",
+  "Karl Gunter Burns",
+  "Karl Gúnter  Burns",
   "Karoly Czifra",
   "Kashifa Rahman",
   "Kate Kelsey",
   "Katherine Pompilis",
+  "Kathleen Richards",
   "Kathleen Stewart",
   "Kathryn Burd",
   "Katina Theophanus",
   "Katrina Mc Evoy",
+  "Katumba Kiggundu",
   "Keisha Omole",
   "Kelly Towli",
   "Kemi Bakare",
   "Kendal Gaw",
+  "Kenneth Roche",
   "Kevin Feroze",
   "Khadija Burrell",
   "Khaos Goncalves",
+  "Kimari Campbell-Brown",
   "Kingsley Appiah",
   "Kirsty Holden",
+  "kk klocova",
+  "Kornelia Klocova",
+  "Kwaku Agyemang",
   "Kyriacos (Kyri) Andrea",
   "Kyriacos Georgiou",
   "Launa lorde",
   "Laura Ball",
+  "Laura Ryan",
+  "Laurence burrows",
+  "Layla  ABBASI",
   "Leah De Range",
   "Leah Simekha",
   "Leanta Etienne",
   "Lee Pooley",
   "Lehi Codner",
+  "Lei Angeni - Aquene",
   "Lei Angeui-Aquene",
   "Leila Jnowbandegane",
+  "Lenny  Bempong",
   "Leonie Ritchie",
+  "Lerrato Mokgatle",
   "Leung-Chung-Kam, Chen (Mr James)",
+  "Lianne Taylor",
   "Lilian Lim",
+  "Lilian Okorocha",
+  "Lillian Turner",
   "Lily Tuffour",
   "Linda K Mann",
   "Linnett Bernard",
@@ -722,16 +910,22 @@ let participants = [
   "Lucy Cieslak",
   "Lucy Orme",
   "Lucy Russell",
+  "Lucy Way",
+  "LYNNE  NEWTON",
+  "MACHEL POWELL",
   "Maggie O'Hagan",
   "Mahbubul (Johnny) Alam",
   "Mai Tai Man",
   "Malachi Stephenson",
+  "Malachi Suffren-Cotton",
+  "Malika Henry",
   "Manizheh Brooke",
   "Manju Patel-Nair",
   "Marcos Socorro Anthony DeAmaral",
   "Margaret Boylan",
   "Margaret Kuforigi",
   "Margaret Owuadey",
+  "Margarete Brigida",
   "Margret Apadoo *archived*",
   "Maria Bucon",
   "Maria Da Silva Santos",
@@ -741,12 +935,16 @@ let participants = [
   "Marie Auckloo",
   "Marie Kirwan",
   "Marina Bautista",
+  "Marisia Bramble",
+  "Marius Daniel CLIMESCU",
   "Mark O'Rourke",
   "Mark Rush",
+  "Marleen Abramson",
   "Marlene Picard",
   "Marlon Bellamy",
   "Marlon Labastide",
   "Marsha - Louise Hutton",
+  "Martin Mkono",
   "Martin O'regan",
   "Martins Strautnieks",
   "Mary Masaba",
@@ -757,32 +955,60 @@ let participants = [
   "Matthew Dring",
   "Matthew Lambert",
   "Matthew Stevens Kean",
+  "May Edmondson",
+  "May Ryan",
+  "Maya GENCHEVA",
+  "Mazen Jamil",
+  "Melissa LOBENDHAN KNOX-HOOKE",
+  "Merline",
   "Michael Constandinou",
   "Michael Darku",
+  "Michael Hill",
   "Michael Lindo",
   "Michael Mcdonnell",
   "Michelle Colaco",
   "Michelle- Amenyitor Timmermans",
+  "MICHELLE KEATING",
   "Mikal Efekele",
   "Miller Ucrilda",
   "Miller Urcilda",
+  "Mindful Writing",
   "Minh Chu",
   "Minoo Maleki",
   "Miranda Holt",
   "Miriam Onen",
+  "Misrak Mekuriai",
+  "Miss Aysha AL-HAJ",
+  "Miss Charlene Palmer",
+  "Miss Jade SOLLINGER",
+  "Miss Monica Cardella",
+  "Miss Sally Beams",
+  "Miss Tara  Moran",
+  "Mohamed abdurahman",
   "Mohamed Al Dobae",
   "Mohamed Hamaizia",
-  "Mohamed abdurahman",
+  "Mohamed Omer",
+  "Mohammad  MOZAFAR SOTOUDEH",
   "Mohammad Vosoughi",
   "Mohammed Omar",
   "Monica Amanfo",
   "Monica Cardella",
+  "Movement for the Soul",
+  "Mr Dennis Kennedy",
+  "Mr Hashim Kimazi",
+  "Mr Paul Sharland",
+  "Ms Angela PANE",
+  "Murad CHOUDHURY",
   "Murat Karakas",
   "Murat Kerimol",
   "Muriel Sampford",
+  "Murielle Mavoka Mwanda",
+  "Musgrove Jane",
+  "Music Appreciation",
   "Najeeb Ziwa",
   "Nakita Broderick",
   "Nancy Kofi-Sikah",
+  "Nasreen  Ibrahim",
   "Nassima Hamouti",
   "Natalie Benain",
   "Natalie Kelson",
@@ -791,32 +1017,46 @@ let participants = [
   "Natasha Robinson-Clarke",
   "Natasha Stimson",
   "Nathaniel Mcintosh",
+  "nazar huseyinoglu",
   "Naznin Kazi",
+  "Neculai Voda",
+  "Neelam Kaur",
   "Neema Nisar",
   "Neil Baker",
+  "Nevay Oceanana Anderson",
   "Nicholas Inniaa",
   "Nick Pailaudeam",
   "Nickema Miller",
+  "Nicky Pasinios",
   "Nicky Pasinos",
   "Nilam Popat",
   "Nim Tam",
   "Nim Tan",
   "Noah Mpoya",
   "Nohe Tekle",
+  "Noor Ahmed",
   "Obiora Odinigbo",
   "Odyssea Angeli",
   "Okkes Tavsanci",
   "Oladapo Odimayo",
   "Olav Poku-Addai",
   "Olayinka Oladoke",
+  "Olayinka Olandoke",
+  "Olu Hassan",
+  "Oluami Hassan",
+  "Oluwatoyin  Sonubi",
   "Omar Boudaoud",
   "Orkun Sesen",
   "Orla Brennan",
   "Ozbeck Ibrahim",
   "Ozbek Ibrahim",
+  "Ozlem Guner",
   "Paige Hunter-Rayson",
   "Pamela Jokhun",
   "Pamela Simms",
+  "Panyiotis Lambrou",
+  "Paris & Julia Minta",
+  "Pasquale Signore",
   "Patricia Andrews",
   "Patricia Christos",
   "Patricia Izebhor",
@@ -825,12 +1065,18 @@ let participants = [
   "Paul Evans",
   "Paul Nakornsuwan",
   "Paula Josiah",
+  "Paulette Engome",
+  "Pauline Hennessy",
   "Pauline Hennesy",
   "Pauline Mcnamara",
   "Pauline Tomlinson",
+  "Peter Montgomery",
   "Peter Williams",
   "Petrakic (Peter) Petrocogt",
   "Philip Todorov",
+  "Philipa Reid",
+  "Pim Weeda",
+  "Pixie Rose",
   "Polina Taylor",
   "Priti Naik",
   "Priya Bheenick",
@@ -839,41 +1085,56 @@ let participants = [
   "Rabiye Koca-Emir",
   "Rachel Gomes",
   "Rafal Adamczyk",
+  "Rafiq Chaudry",
+  "Rahman DARAMOLA",
+  "Rajesh Lakhani",
   "Rana Alshaer",
   "Rana Khalidi",
   "Raphael Abraham",
+  "Ray Elson",
   "Ray Elson/ Martine Soulan",
+  "Raymond  Johnson",
   "Reah Jesika Joygopaul",
   "Rebecca Bruce",
   "Rebecca Ellis",
   "Reda Khelladi",
   "Refya Bayir",
+  "Remigiusz Holewa",
   "Reuben Mackay",
   "Reza Bayatloo",
   "Richard Anthony Shirley",
   "Richard Curtis",
+  "Richard Kolawale",
   "Richard Kolawole",
   "Richard Manu",
   "Richard Porter",
+  "Richard Roads",
   "Rita Ramanaidoo",
+  "Robert O Sullivan",
   "Robert Russell",
   "Robyn Lewis - Rowe",
   "Rody Ikomo",
+  "Romero Eduardo",
   "Rosa Fernandes",
   "Rosa Piedade",
   "Rosalyn Kirton",
+  "Rose Hook",
   "Rose Lindsay",
   "Rosemary Hinds",
   "Rosida Simrick",
+  "Rosie Heavens",
   "Royston Kazley",
   "Ruby Baker",
   "Sae Sun Davis",
+  "Sage Olowoake-Anifowoshe",
   "Sai-Yin Cheung",
+  "Saikeerthana Allamaraju",
   "Salimat Toyin Mahmoud",
   "Sally-Anne Wigfield",
   "Sam Shearsmith",
   "Sam Steele",
   "Samantha Cole",
+  "Samantha Duplock",
   "Samson Tesfay",
   "Sanchez-Joseph Roberts",
   "Sandra Douglas",
@@ -881,79 +1142,113 @@ let participants = [
   "Sandra Lawrence-Thompson",
   "Sandra Parkinson",
   "Sandra Sutherland",
+  "SARAH ABDIRIZAK WARSAME",
   "Sarah Adu-Sesay",
   "Sarah Augustine",
   "Sarah Ayodeji",
+  "Sarah Brennan",
   "Sarah Fitzpatrick",
+  "Sarah Rebeiro",
+  "Sarah Warsame",
   "Satish Kabra",
   "Scott Humphreys",
+  "Sebastian Kochs",
   "Selin Tatar",
   "Sengul Kurnaz",
+  "Seraina Spence",
   "Shafin Rahman",
+  "Shahid  Isrola",
+  "Shahid Isrolia",
   "Shaila Hossain",
+  "Shakeel Bhatoo",
   "Shakira Sule",
   "Shakrudeen (goes by ‘Ola’) Balogun",
   "Shanya Johnson",
+  "Sharmin Shammi",
   "Sharon Girdhari",
   "Sharon Irvine",
   "Sharon Mandary",
   "Sharon Richardson",
+  "Sharon Roberts",
   "Shawkat Jahan Kair",
   "Shawkat Jahan Khair",
   "Shervin Carter",
   "Shikisha Panford",
   "Shirley Walker",
   "Shorn Yaren",
+  "Sidonie Charlton Brown",
+  "Silvana Patricia Tobon Rodriguez",
   "Simeon Carrington",
   "Simeon Thompson",
   "Sirtaj Rahman",
+  "Social Gaming",
   "Sofia Jaramillo",
   "Sonia Collimore",
   "Sonuc Ozdenya",
   "Sophia Ennon",
+  "Sophia Saddique",
   "Sophie Brocklebank",
   "Sophie Smithan",
   "Soraya Jones",
   "Stacey Sayers",
+  "Starisha Loyinniss",
   "Stefan Emerson",
+  "Stella Schwaeble",
+  "Stephanie Feeney",
+  "Stephanie Preston",
+  "Stephen  Rwid",
   "Stephen Kajang",
   "Steve Thompson",
+  "Steven Marsh",
+  "Strength Group",
   "Sujan Nandanwar",
   "Suriya Kassa",
   "Susan (Sue) Munro",
+  "Susan Brown",
   "Susan Burgess",
   "Susan Mchale",
   "Susan Piper",
+  "Suzanna Jade halil",
   "Suzanne Collins",
   "Suzanne West",
   "Sylvia Rita Brown",
+  "Szabina Nagy",
   "Talayeh Williams",
+  "Tamara Mihailova",
   "Tammara Holder",
   "Tamsin Pinder",
   "Tara Moran",
   "Tara O'Malley",
   "Tashana Campbell",
+  "Teegan Edwards",
   "Teresa McDonagh",
   "Teresa Piekos Lindsa",
   "Terry-Ann Atkinson",
   "Tessa Osborne",
+  "The Hut",
   "Theresa Preston",
   "Therese Moloney",
   "Tilahun Bisrate",
+  "Titeo Kamruzz Aman",
+  "Titu Kamruzzaman",
   "Tobiasz Ciesielski",
   "Tolga Demir",
+  "Tom Cox",
   "Tony Antwi-agyei",
   "Tony Barretto",
+  "TopMan",
   "Touzani Zara",
   "Tracy Ahmet",
   "Tracy Newsome",
   "Trevor Reece Hammond",
   "Trevor Skelton",
   "Tu Quynh Chu",
+  "Turkan Turenc",
   "Valarie Obinma",
   "Valerie Findlty",
   "Valerie Godong",
   "Valeriya Kireva",
+  "Valery Obungu",
   "Varsha Patel",
   "Vasiliya Vatova",
   "Vennise Bennet",
@@ -962,41 +1257,77 @@ let participants = [
   "Victoria Soul",
   "Vilma Punch",
   "Vincent Okozodo",
+  "Vivienne Henderson",
+  "Walk",
+  "Walk Group",
+  "Walton MClaren",
+  "Wayne Philips",
+  "Wayne Phillips",
+  "Wellbeing Chat",
   "Wesley Dwayne Hemmings",
   "William Murphy",
+  "William Spire",
   "Wilson Kinon",
   "Windsor Orgill",
+  "Winnifred Lange",
+  "Women's Group",
+  "Yakine Goddard",
   "Yaquelin Marques Da Silva",
   "Yaravi Emilio Artiaga",
+  "Yasmin Asher",
+  "Yaw Buamah",
+  "Yvonne Bassey",
   "Yvonne Clements",
   "Yvonne Gonzalez",
+  "Zahida Nayyer",
   "Zarin Sooky",
+  "Zdena Sarkoziova",
+  "Zenobia Adams",
+  "Zerihun ONDIMU",
+  "Zimirije Kullolli",
   "Zoe Vincent",
   "Zorin Niketic"
-].sort();
-
-let sessions = [
-  { name: "Art and Conversations", location: "Chestnuts Community Centre" },
-  { name: "Art Therapy (Group)", location: "Chestnuts Community Centre" },
-  { name: "Art Therapy (1:1)", location: "Chestnuts Community Centre" },
-  { name: "Chair Exercise", location: "Chestnuts Community Centre" },
-  { name: "Creative Space", location: "Chestnuts Community Centre" },
-  { name: "Mindful Writing", location: "Chestnuts Community Centre" },
-  { name: "Movement for the Soul", location: "Chestnuts Community Centre" },
-  { name: "Music Appreciation", location: "Chestnuts Community Centre" },
-  { name: "Walk", location: "Chestnuts Park" },
-  { name: "Walk Group", location: "Chestnuts Community Centre" },
-  { name: "TopMan", location: "Chestnuts Community Centre" },
-  { name: "Cricket", location: "Chestnuts Community Centre" },
-  { name: "Women's Group", location: "Chestnuts Community Centre" },
-  { name: "Gardening", location: "The Hut" },
-  { name: "Strength Group", location: "The Hut" },
-  { name: "Wellbeing Chat", location: "Chestnuts Community Centre" },
-  { name: "Social Gaming", location: "Chestnuts Community Centre" },
-  { name: "Baking Group", location: "Chestnuts Community Centre" },
 ];
 
+let sessions = [
+  { name: "Chair Exercises", location: "Chestnuts Community Centre" },
+  { name: "Art and Conversations", location: "Chestnuts Community Centre" },
+  { name: "Music Appreciation", location: "Chestnuts Community Centre" },
+  { name: "Creative Space", location: "Chestnuts Community Centre" },
+  { name: "Movement for the Soul", location: "Chestnuts Community Centre" },
+  { name: "Top Man Group", location: "Chestnuts Community Centre" },
+  { name: "Art Therapy (Group)", location: "Chestnuts Community Centre" },
+  { name: "Midday Movie Magic", location: "Chestnuts Community Centre" },
+  { name: "Mindful Writing", location: "Chestnuts Community Centre" },
+  { name: "Women's Group", location: "Chestnuts Community Centre" },
+  { name: "Art Therapy (1:1)", location: "Chestnuts Community Centre" },
+  { name: "Walking group", location: "Chestnuts Community Centre" },
+  { name: "Walking group", location: "Chestnuts Park" },
+  { name: "Group Welcome Chat", location: "Chestnuts Community Centre" },
+  { name: "Wellbeing Chats (1:1)", location: "Chestnuts Community Centre" },
+  { name: "Women's/Men's Group - Blend", location: "Chestnuts Community Centre" },
+  { name: "Tree of Life", location: "The Hut" },
+  { name: "Pop-Up Events", location: "Bright Hut" },
+  { name: "Pop-Up Events", location: "The Hut" },
+  { name: "Group Welcome Chat", location: "The Hut" },
+  { name: "Baking Group", location: "The Hut" },
+  { name: "Social Gaming", location: "Chestnuts Community Centre" },
+  { name: "Significant Contact", location: "Chestnuts Community Centre" },
+  { name: "Significant Contact", location: "Telephone contact" },
+  { name: "Walking group", location: "Local Community" },
+  { name: "Women's Group", location: "Local Community" }
+];
+
+const LOG_STORAGE_KEY = 'tt_kiosk_log';
 let log = [];
+try {
+  log = JSON.parse(localStorage.getItem(LOG_STORAGE_KEY)) || [];
+} catch (e) {
+  log = [];
+}
+function saveLog() {
+  try { localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log)); } catch (e) {}
+}
 let chosenName = '';
 let chosenSession = null;
 let currentMode = 'in'; // 'in' or 'out'
@@ -1026,6 +1357,7 @@ function showScreen(id) {
   }
   if (id === 'screen-session') renderSessions();
   if (id === 'screen-admin') renderAdmin();
+  if (id === 'screen-leaderboard') renderLeaderboard();
 }
 
 // ── FLOW ──────────────────────────────────────────────────────────────────────
@@ -1228,6 +1560,7 @@ function submitFeedback(score, btn) {
       pendingRecord.feeling = score;
       pendingRecord.comment = comment;
       log.push(pendingRecord);
+      saveLog();
       pendingRecord = null;
     }
     showSuccess();
@@ -1316,6 +1649,100 @@ function exportCSV() {
   const a = document.createElement('a');
   a.href = url; a.download = 'TT_activity_' + new Date().toISOString().slice(0,10) + '.csv'; a.click();
   URL.revokeObjectURL(url);
+}
+
+// ── SESSION LEADERBOARD ──────────────────────────────────────────────────────
+const LB_COLORS = ['#3a6b2a', '#F9C922', '#4d8a38', '#e6b70f', '#6fa858', '#c9a30a', '#8fbf72', '#7a6000'];
+
+function renderLeaderboard() {
+  const todayStr = new Date().toLocaleDateString('en-GB');
+
+  // Build the date dropdown from whatever dates exist in the log, newest first.
+  const toSortable = d => d.split('/').reverse().join('-'); // dd/mm/yyyy -> yyyy-mm-dd
+  const dates = Array.from(new Set(log.map(r => r.date)));
+  if (!dates.includes(todayStr)) dates.push(todayStr);
+  dates.sort((a, b) => toSortable(b).localeCompare(toSortable(a)));
+
+  const sel = document.getElementById('leaderboard-date');
+  const prevVal = sel.value;
+  sel.innerHTML = dates.map(d =>
+    `<option value="${d}">${d === todayStr ? d + ' (Today)' : d}</option>`).join('');
+  sel.value = dates.includes(prevVal) ? prevVal : todayStr;
+
+  const date = sel.value;
+  const dayCheckins = log.filter(r => r.date === date && r.type === 'in');
+
+  const bySession = {};
+  dayCheckins.forEach(r => {
+    const key = r.session + '||' + r.location;
+    if (!bySession[key]) bySession[key] = { name: r.session, location: r.location, names: [] };
+    if (!bySession[key].names.includes(r.name)) bySession[key].names.push(r.name);
+  });
+
+  const rows = Object.values(bySession).sort((a, b) => b.names.length - a.names.length);
+  const total = rows.reduce((sum, r) => sum + r.names.length, 0);
+  const maxCount = rows.length ? rows[0].names.length : 0;
+
+  document.getElementById('leaderboard-total').textContent = total;
+  document.getElementById('leaderboard-session-count').textContent = rows.length;
+
+  const list = document.getElementById('leaderboard-list');
+  if (!rows.length) {
+    list.innerHTML = '<div style="color:#999;padding:18px 4px;">No check-ins recorded for this date yet.</div>';
+  } else {
+    list.innerHTML = rows.map((r, i) => {
+      const pct = maxCount ? Math.round((r.names.length / maxCount) * 100) : 0;
+      const color = LB_COLORS[i % LB_COLORS.length];
+      const names = r.names.slice().sort((a, b) => a.localeCompare(b)).join(', ');
+      return `
+        <div class="lb-row">
+          <div class="lb-row-head">
+            <div class="lb-rank">#${i + 1}</div>
+            <div class="lb-session-info">
+              <div class="lb-session-name">${r.name}</div>
+              <div class="lb-session-loc">${r.location}</div>
+            </div>
+            <div class="lb-count">${r.names.length}</div>
+          </div>
+          <div class="lb-bar-track"><div class="lb-bar-fill" style="width:${pct}%; background:${color};"></div></div>
+          <div class="lb-names">${names}</div>
+        </div>`;
+    }).join('');
+  }
+
+  renderLeaderboardPie(rows, total);
+}
+
+function renderLeaderboardPie(rows, total) {
+  const svg = document.getElementById('leaderboard-pie');
+  const legend = document.getElementById('leaderboard-legend');
+  if (!total) {
+    svg.innerHTML = '<circle cx="100" cy="100" r="90" fill="var(--yellow-light)"></circle>';
+    legend.innerHTML = '';
+    return;
+  }
+
+  const cx = 100, cy = 100, r = 90;
+  if (rows.length === 1) {
+    svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${LB_COLORS[0]}"></circle>`;
+  } else {
+    let cumulative = 0;
+    svg.innerHTML = rows.map((row, i) => {
+      const value = row.names.length;
+      const startAngle = (cumulative / total) * 2 * Math.PI;
+      cumulative += value;
+      const endAngle = (cumulative / total) * 2 * Math.PI;
+      const x1 = cx + r * Math.sin(startAngle), y1 = cy - r * Math.cos(startAngle);
+      const x2 = cx + r * Math.sin(endAngle), y2 = cy - r * Math.cos(endAngle);
+      const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
+      const color = LB_COLORS[i % LB_COLORS.length];
+      return `<path d="M${cx},${cy} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${largeArc} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${color}"></path>`;
+    }).join('');
+  }
+
+  legend.innerHTML = rows.map((row, i) =>
+    `<div class="lb-legend-item"><span class="lb-legend-dot" style="background:${LB_COLORS[i % LB_COLORS.length]}"></span>${row.name} — ${row.names.length}</div>`
+  ).join('');
 }
 </script>
 </body>
