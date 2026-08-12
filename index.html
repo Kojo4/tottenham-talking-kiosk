@@ -2,8 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tottenham Talking — Check In / Out</title>
+
+<!-- Add to Home Screen: launch full-screen, no Safari chrome -->
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TT Check In">
+<meta name="theme-color" content="#3a6b2a">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+
 <link href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,700;1,700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -21,7 +32,7 @@
   --radius: 18px;
   --radius-sm: 12px;
 }
-body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .screen { display: none; flex-direction: column; height: 100vh; animation: fadeIn 0.3s ease; }
 .screen.active { display: flex; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -1344,6 +1355,25 @@ function updateClock() {
 }
 setInterval(updateClock, 1000);
 updateClock();
+
+// ── SCREEN WAKE LOCK ──────────────────────────────────────────────────────────
+// Keeps the display from sleeping while this kiosk page is open (iOS 16.4+ /
+// modern Safari). This is a best-effort supplement, not a replacement for
+// turning off Auto-Lock in iPad Settings — the lock is released whenever the
+// tab is backgrounded and must be re-acquired, and some devices ignore it.
+let wakeLock = null;
+async function requestWakeLock() {
+  if (!('wakeLock' in navigator)) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+  } catch (e) {
+    // Permission or power-saving state denied it — nothing more we can do from JS.
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') requestWakeLock();
+});
+requestWakeLock();
 
 // ── SCREENS ───────────────────────────────────────────────────────────────────
 function showScreen(id) {
