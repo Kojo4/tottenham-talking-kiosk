@@ -270,6 +270,7 @@ body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var
         <strong>&#128274; Your name stays private</strong>
         No one else can see who's checked in. Type your first or last name and we'll find you.
       </div>
+      <button class="btn-back" style="margin-top:14px;" onclick="showScreen('screen-welcome')">← Back to home</button>
     </div>
   </div>
 </div>
@@ -288,6 +289,9 @@ body { font-family: 'DM Sans', sans-serif; background: var(--yellow); color: var
       <div class="step-title" id="session-step-title">Which session?</div>
     </div>
     <div class="sessions-list" id="sessions-list"></div>
+    <div style="padding:0 32px 24px;">
+      <button class="btn-back" onclick="showScreen('screen-name')">← Back</button>
+    </div>
   </div>
 </div>
 
