@@ -1343,6 +1343,27 @@ try {
 function saveLog() {
   try { localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(log)); } catch (e) {}
 }
+
+// Participants and sessions added via the admin screen are saved to this
+// device's storage so they survive a refresh. Each iPad keeps its own copy —
+// a name or session added on one device does NOT appear on the other.
+const PARTICIPANTS_STORAGE_KEY = 'tt_kiosk_participants';
+try {
+  const storedParticipants = JSON.parse(localStorage.getItem(PARTICIPANTS_STORAGE_KEY));
+  if (Array.isArray(storedParticipants) && storedParticipants.length) participants = storedParticipants;
+} catch (e) {}
+function saveParticipants() {
+  try { localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participants)); } catch (e) {}
+}
+
+const SESSIONS_STORAGE_KEY = 'tt_kiosk_sessions';
+try {
+  const storedSessions = JSON.parse(localStorage.getItem(SESSIONS_STORAGE_KEY));
+  if (Array.isArray(storedSessions) && storedSessions.length) sessions = storedSessions;
+} catch (e) {}
+function saveSessions() {
+  try { localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions)); } catch (e) {}
+}
 let chosenName = '';
 let chosenSession = null;
 let currentMode = 'in'; // 'in' or 'out'
@@ -1656,20 +1677,22 @@ function addSession() {
   const l = document.getElementById('new-session-loc').value.trim() || 'Chestnuts Community Centre';
   if (!n) return;
   sessions.push({ name: n, location: l });
+  saveSessions();
   document.getElementById('new-session-name').value = '';
   document.getElementById('new-session-loc').value = '';
   renderAdmin();
 }
-function removeSession(i) { sessions.splice(i,1); renderAdmin(); }
+function removeSession(i) { sessions.splice(i,1); saveSessions(); renderAdmin(); }
 
 function addParticipant() {
   const n = document.getElementById('new-participant').value.trim();
   if (!n) return;
   participants.push(n); participants.sort();
+  saveParticipants();
   document.getElementById('new-participant').value = '';
   renderAdmin();
 }
-function removeParticipant(i) { participants.splice(i,1); renderAdmin(); }
+function removeParticipant(i) { participants.splice(i,1); saveParticipants(); renderAdmin(); }
 
 function exportCSV() {
   if (!log.length) { alert('No activity to export yet.'); return; }
